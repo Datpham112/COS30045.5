@@ -1,12 +1,32 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 1rem;
+  margin: 0;
+  color: #1f2d1f;
+  background: #f7faf5;
 }
 
-/* Ex 4.3: responsive container for D3 svg */
-.responsive-svg-container {
-  margin-right: auto;
-  margin-left: auto;
-  width: 100%;
-  max-width: 1200px;
+header, main, footer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
+
+header { padding-top: 1.5rem; }
+footer { padding-bottom: 2rem; font-size: 0.85rem; }
+
+section { margin: 2.5rem 0; }
+h2 { margin-bottom: 0.25rem; }
+section > p { margin: 0.25rem 0 0.75rem; }
+
+svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #ffffff;
+  border: 1px solid #cfd8c8;
+}
+
+.source { font-size: 0.8rem; color: #566; margin-top: 0.5rem; }
+.axis-label { font-size: 14px; }
+.value-label { font-size: 13px; text-anchor: middle; }
+.legend text { font-size: 15px; dominant-baseline: middle; }

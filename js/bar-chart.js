@@ -1,15 +1,14 @@
 d3.csv("data/data_55in.csv", d => ({
   Screen_Tech: d.Screen_Tech,
-  Energy_Consumption: +d.Energy_Consumption   
+  Energy_Consumption: +d.Energy_Consumption
 })).then(data => {
-  console.log(data);                 
+  console.log(data);
   data.sort((a, b) => b.Energy_Consumption - a.Energy_Consumption);
   drawBarChart(data);
 });
 
 const drawBarChart = data => {
-
-  const margin = { top: 40, right: 170, bottom: 25, left: 40 };
+  const margin = { top: 40, right: 30, bottom: 60, left: 60 };
   const width = 1000;
   const height = 500;
   const innerWidth = width - margin.left - margin.right;
@@ -17,8 +16,7 @@ const drawBarChart = data => {
 
   const svg = d3.select("#bar-chart")
     .append("svg")
-    .attr("viewBox", `0, 0, ${width}, ${height}`)
-    .style("border", "1px solid black");
+    .attr("viewBox", `0 0 ${width} ${height}`);
 
   const innerChart = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -30,30 +28,43 @@ const drawBarChart = data => {
 
   const yScale = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.Energy_Consumption)])
-    .range([innerHeight, 0]);
-
-  const bottomAxis = d3.axisBottom(xScale);
-  const leftAxis = d3.axisLeft(yScale);
+    .range([innerHeight, 0])
+    .nice();
 
   innerChart.append("g")
     .attr("transform", `translate(0, ${innerHeight})`)
-    .call(bottomAxis);
+    .call(d3.axisBottom(xScale));
 
-  innerChart.append("g").call(leftAxis);
-
-  innerChart.append("text")
-    .text("Energy Consumption (kWh)")
-    .attr("x", -margin.left)
-    .attr("y", -10)
-    .attr("text-anchor", "start");
+  innerChart.append("g").call(d3.axisLeft(yScale));
 
   innerChart.selectAll(".bar")
     .data(data)
     .join("rect")
     .attr("class", "bar")
-    .attr("width", xScale.bandwidth())
-    .attr("height", d => innerHeight - yScale(d.Energy_Consumption))
     .attr("x", d => xScale(d.Screen_Tech))
     .attr("y", d => yScale(d.Energy_Consumption))
+    .attr("width", xScale.bandwidth())
+    .attr("height", d => innerHeight - yScale(d.Energy_Consumption))
     .attr("fill", "green");
+
+  innerChart.selectAll(".value-label")
+    .data(data)
+    .join("text")
+    .attr("class", "value-label")
+    .attr("x", d => xScale(d.Screen_Tech) + xScale.bandwidth() / 2)
+    .attr("y", d => yScale(d.Energy_Consumption) - 6)
+    .text(d => d3.format(".0f")(d.Energy_Consumption));
+
+  svg.append("text")
+    .attr("class", "axis-label")
+    .attr("x", margin.left)
+    .attr("y", 22)
+    .text("Energy consumption (kWh per year)");
+
+  svg.append("text")
+    .attr("class", "axis-label")
+    .attr("x", margin.left + innerWidth / 2)
+    .attr("y", height - 12)
+    .attr("text-anchor", "middle")
+    .text("Screen technology");
 };

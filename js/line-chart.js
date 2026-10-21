@@ -2,11 +2,12 @@ d3.csv("data/ARE_Spot_Prices.csv", d => ({
   year: +d["Year"],
   averagePrice: +d["Average Price (notTas-Snowy)"]
 })).then(data => {
-  console.log(data);  
+  console.log(data);
   drawLineChart(data);
 });
+
 const drawLineChart = data => {
-  const margin = { top: 40, right: 170, bottom: 25, left: 40 };
+  const margin = { top: 40, right: 30, bottom: 60, left: 60 };
   const width = 1000;
   const height = 500;
   const innerWidth = width - margin.left - margin.right;
@@ -14,46 +15,26 @@ const drawLineChart = data => {
 
   const svg = d3.select("#line-chart")
     .append("svg")
-    .attr("viewBox", `0, 0, ${width}, ${height}`)
-    .style("border", "1px solid black");
+    .attr("viewBox", `0 0 ${width} ${height}`);
 
   const innerChart = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
   const xScale = d3.scaleLinear()
-    .domain(d3.extent(data, d => d.year))    
+    .domain(d3.extent(data, d => d.year))
     .range([0, innerWidth]);
 
   const yScale = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.averagePrice)])
-    .range([innerHeight, 0]);
-
-  // Axes
-  const bottomAxis = d3.axisBottom(xScale)
-    .tickFormat(d3.format("d"));   
-  const leftAxis = d3.axisLeft(yScale);
+    .range([innerHeight, 0])
+    .nice();
 
   innerChart.append("g")
     .attr("transform", `translate(0, ${innerHeight})`)
-    .call(bottomAxis);
-  innerChart.append("g").call(leftAxis);
+    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
 
-  innerChart.append("text")
-    .text("Average Price ($ per mWh)")
-    .attr("x", -margin.left)
-    .attr("y", -10)
-    .attr("text-anchor", "start");
+  innerChart.append("g").call(d3.axisLeft(yScale));
 
-  // ---- A) SCATTER PLOT ----
-  innerChart.selectAll("circle")
-    .data(data)
-    .join("circle")
-    .attr("r", 3)
-    .attr("cx", d => xScale(d.year))
-    .attr("cy", d => yScale(d.averagePrice))
-    .attr("fill", "green");
-
-  // ---- B) LINE ----
   const lineGenerator = d3.line()
     .x(d => xScale(d.year))
     .y(d => yScale(d.averagePrice));
@@ -61,6 +42,27 @@ const drawLineChart = data => {
   innerChart.append("path")
     .attr("d", lineGenerator(data))
     .attr("fill", "none")
-    .attr("stroke", "green");
-};
+    .attr("stroke", "green")
+    .attr("stroke-width", 2);
 
+  innerChart.selectAll("circle")
+    .data(data)
+    .join("circle")
+    .attr("cx", d => xScale(d.year))
+    .attr("cy", d => yScale(d.averagePrice))
+    .attr("r", 3)
+    .attr("fill", "green");
+
+  svg.append("text")
+    .attr("class", "axis-label")
+    .attr("x", margin.left)
+    .attr("y", 22)
+    .text("Average price ($ per MWh)");
+
+  svg.append("text")
+    .attr("class", "axis-label")
+    .attr("x", margin.left + innerWidth / 2)
+    .attr("y", height - 12)
+    .attr("text-anchor", "middle")
+    .text("Year");
+};

@@ -9,35 +9,28 @@ d3.csv("data/screensize_category.csv", d => ({
 const drawDonutChart = data => {
   const width = 1000;
   const height = 500;
-  const radius = Math.min(width, height) / 2 - 20;   // chừa padding
+  const radius = Math.min(width, height) / 2 - 20;
+  const total = d3.sum(data, d => d.Count);
 
-  // Color scale (danh mục rời rạc → scaleOrdinal)
   const color = d3.scaleOrdinal()
     .domain(data.map(d => d.Screensize_Category))
     .range(d3.schemeSet2);
 
-  // Tính góc cho mỗi miếng
   const pie = d3.pie()
     .value(d => d.Count)
     .sort(null);
 
-  // Arc generator
   const arcGenerator = d3.arc()
     .innerRadius(radius * 0.6)
-    .outerRadius(radius * 1);
-    // .padAngle(0.02)
-    // .cornerRadius(6)
+    .outerRadius(radius);
 
-  // SVG: gốc tọa độ dời về GIỮA svg
   const svg = d3.select("#donut-chart")
     .append("svg")
-    .attr("viewBox", `0, 0, ${width}, ${height}`)
-    .style("border", "1px solid black");
+    .attr("viewBox", `0 0 ${width} ${height}`);
 
   const innerChart = svg.append("g")
-    .attr("transform", `translate(${width / 2}, ${height / 2})`);
+    .attr("transform", `translate(${width / 2 - 120}, ${height / 2})`);
 
-  // Vẽ các cung
   innerChart.selectAll("path")
     .data(pie(data))
     .join("path")
@@ -46,11 +39,41 @@ const drawDonutChart = data => {
     .attr("stroke", "white")
     .attr("stroke-width", 2);
 
-  // Nhãn ở giữa mỗi miếng
-  innerChart.selectAll("text")
+  innerChart.selectAll(".slice-label")
     .data(pie(data))
     .join("text")
+    .attr("class", "slice-label")
     .attr("transform", d => `translate(${arcGenerator.centroid(d)})`)
     .attr("text-anchor", "middle")
-    .text(d => d.data.Screensize_Category);
+    .text(d => d3.format(".0%")(d.data.Count / total));
+
+  innerChart.append("text")
+    .attr("text-anchor", "middle")
+    .attr("y", -4)
+    .style("font-size", "28px")
+    .text(d3.format(",")(total));
+
+  innerChart.append("text")
+    .attr("text-anchor", "middle")
+    .attr("y", 22)
+    .text("TVs in total");
+
+  const legend = svg.append("g")
+    .attr("class", "legend")
+    .attr("transform", `translate(${width - 270}, ${height / 2 - 50})`);
+
+  data.forEach((d, i) => {
+    const row = legend.append("g")
+      .attr("transform", `translate(0, ${i * 34})`);
+
+    row.append("rect")
+      .attr("width", 18)
+      .attr("height", 18)
+      .attr("y", -9)
+      .attr("fill", color(d.Screensize_Category));
+
+    row.append("text")
+      .attr("x", 28)
+      .text(`${d.Screensize_Category}: ${d3.format(",")(d.Count)}`);
+  });
 };
